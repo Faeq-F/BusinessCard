@@ -117,8 +117,37 @@ fun NameSection(name : String, title:String, modifier : Modifier = Modifier){
   }
 }
 
+private suspend fun getContactNumbers(): HashMap<String, ArrayList<String>> {
+  val contactsNumberMap = HashMap<String, ArrayList<String>>()
+  val phoneCursor: Cursor? = contentResolver.query(
+    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+    null,
+    null,
+    null,
+    null
+  )
+  if (phoneCursor != null && phoneCursor.count > 0) {
+    val contactIdIndex = phoneCursor!!.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
+    val numberIndex = phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+    while (phoneCursor.moveToNext()) {
+      val contactId = phoneCursor.getString(contactIdIndex)
+      val number: String = phoneCursor.getString(numberIndex)
+      //check if the map contains key or not, if not then create a new array list with number
+      if (contactsNumberMap.containsKey(contactId)) {
+        contactsNumberMap[contactId]?.add(number)
+      } else {
+        contactsNumberMap[contactId] = arrayListOf(number)
+      }
+    }
+    //contact contains all the number of a particular contact
+    phoneCursor.close()
+  }
+  return contactsNumberMap
+}
 
-fun getPhoneNumber(): Int {
+suspend fun getPhoneNumber(): Int {
+  val numbers = getContactNumbers()
+  Log()
   return R.string.phone_number
 }
 
